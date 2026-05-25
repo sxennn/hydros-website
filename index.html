@@ -3,52 +3,310 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project HYDROS</title>
+  <title>Project HYDROS - 3D Interactive</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Segoe UI, sans-serif; background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); color: #e0e7ff; min-height: 100vh; padding: 20px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .header { text-align: center; margin-bottom: 40px; background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(10px); padding: 30px; border-radius: 12px; border: 1px solid rgba(147, 112, 219, 0.3); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); }
-    .header h1 { font-size: 48px; color: #93a5ff; margin-bottom: 10px; letter-spacing: 2px; }
-    .header p { font-size: 16px; color: #9ca3af; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-    .card { background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(147, 112, 219, 0.3); border-radius: 12px; padding: 25px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); transition: all 0.3s ease; }
-    .card:hover { border-color: #93a5ff; box-shadow: 0 0 25px rgba(147, 112, 219, 0.5); transform: translateY(-5px); }
-    .card h3 { font-size: 20px; color: #93a5ff; margin-bottom: 15px; border-bottom: 1px solid rgba(147, 112, 219, 0.2); padding-bottom: 10px; }
-    .spec { margin-bottom: 12px; }
-    .spec-label { color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-    .spec-value { color: #60a5fa; font-size: 18px; font-weight: 700; font-family: Courier New, monospace; }
-    .spec-unit { color: #6b7280; font-size: 12px; margin-left: 5px; }
-    .overview { grid-column: 1 / -1; }
+    body { font-family: Segoe UI, sans-serif; background: #0a0e27; color: #e0e7ff; overflow: hidden; }
+    .main-container { display: flex; width: 100vw; height: 100vh; }
+    #canvas { flex: 1; width: 100%; }
+    .sidebar { width: 350px; background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(15px); border-left: 1px solid rgba(147, 112, 219, 0.3); padding: 20px; overflow-y: auto; }
+    .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(147, 112, 219, 0.2); }
+    .header h1 { font-size: 28px; color: #93a5ff; margin-bottom: 5px; letter-spacing: 1px; }
+    .header p { font-size: 12px; color: #9ca3af; }
+    .control-section { margin-bottom: 25px; }
+    .control-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; font-weight: 700; }
+    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn { padding: 10px; border: 1px solid rgba(147, 112, 219, 0.5); background: rgba(147, 112, 219, 0.1); color: #93a5ff; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.3s; }
+    .btn:hover { background: rgba(147, 112, 219, 0.2); border-color: #93a5ff; }
+    .btn.active { background: rgba(147, 112, 219, 0.4); border-color: #93a5ff; }
+    .info-box { background: rgba(147, 112, 219, 0.1); border: 1px solid rgba(147, 112, 219, 0.3); border-radius: 8px; padding: 15px; margin-top: 20px; }
+    .info-item { margin-bottom: 10px; }
+    .info-label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; }
+    .info-value { font-size: 16px; color: #60a5fa; font-weight: 700; font-family: monospace; }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: rgba(147, 112, 219, 0.1); }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(147, 112, 219, 0.4); border-radius: 3px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🌊 Project HYDROS</h1>
-      <p>Hyperbaric Underwater Dissolved Oxygen Respirant Station</p>
-    </div>
-    <div class="grid">
-      <div class="card overview">
-        <h3>📊 System Overview</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-          <div class="spec"><div class="spec-label">Operating Depth</div><div class="spec-value">20<span class="spec-unit">m</span></div></div>
-          <div class="spec"><div class="spec-label">Divers Supported</div><div class="spec-value">6<span class="spec-unit">simultaneous</span></div></div>
-          <div class="spec"><div class="spec-label">Station Mass</div><div class="spec-value">2,346<span class="spec-unit">kg</span></div></div>
-          <div class="spec"><div class="spec-label">O₂ Demand</div><div class="spec-value">0.129<span class="spec-unit">kg/hr</span></div></div>
-          <div class="spec"><div class="spec-label">Safety Factor</div><div class="spec-value">3.32<span class="spec-unit">ASME</span></div></div>
+  <div class="main-container">
+    <canvas id="canvas"></canvas>
+    <div class="sidebar">
+      <div class="header">
+        <h1>🌊 HYDROS</h1>
+        <p>Interactive 3D Model</p>
+      </div>
+
+      <div class="control-section">
+        <div class="control-label">💾 Components</div>
+        <div class="button-grid">
+          <button class="btn component-btn" data-component="turbines">🌪️ Turbines</button>
+          <button class="btn component-btn" data-component="membrane">🫧 Membrane</button>
+          <button class="btn component-btn" data-component="scrubber">🧹 Scrubber</button>
+          <button class="btn component-btn" data-component="buffer">🔋 Buffer</button>
+          <button class="btn component-btn" data-component="manifold">⚡ Manifold</button>
+          <button class="btn component-btn" data-component="frame">🏗️ Frame</button>
+          <button class="btn component-btn" data-component="hoses">🔗 Hoses</button>
+          <button class="btn component-btn" data-component="balloon">🔵 Balloon</button>
         </div>
       </div>
-      <div class="card"><h3>🌪️ Turbine Array</h3><div class="spec"><div class="spec-label">Quantity</div><div class="spec-value">3<span class="spec-unit">turbines</span></div></div><div class="spec"><div class="spec-label">Flow Rate</div><div class="spec-value">109,800<span class="spec-unit">L/min</span></div></div><div class="spec"><div class="spec-label">Blade Diameter</div><div class="spec-value">760<span class="spec-unit">mm</span></div></div></div>
-      <div class="card"><h3>🫧 Membrane Chamber</h3><div class="spec"><div class="spec-label">Material</div><div class="spec-value">Ti-6Al-4V<span class="spec-unit">titanium</span></div></div><div class="spec"><div class="spec-label">Surface Area</div><div class="spec-value">3.47<span class="spec-unit">m²</span></div></div><div class="spec"><div class="spec-label">Extraction Rate</div><div class="spec-value">20%<span class="spec-unit">per pass</span></div></div></div>
-      <div class="card"><h3>🧹 CO₂ Scrubber</h3><div class="spec"><div class="spec-label">Soda Lime Charge</div><div class="spec-value">2.5<span class="spec-unit">kg</span></div></div><div class="spec"><div class="spec-label">Duration</div><div class="spec-value">48.5<span class="spec-unit">hours</span></div></div><div class="spec"><div class="spec-label">Target pCO₂</div><div class="spec-value">&lt;500<span class="spec-unit">Pa</span></div></div></div>
-      <div class="card"><h3>🔋 Buffer Tank</h3><div class="spec"><div class="spec-label">Volume</div><div class="spec-value">228<span class="spec-unit">litres</span></div></div><div class="spec"><div class="spec-label">Pressure</div><div class="spec-value">3.0<span class="spec-unit">atm</span></div></div><div class="spec"><div class="spec-label">Mass</div><div class="spec-value">68<span class="spec-unit">kg</span></div></div></div>
-      <div class="card"><h3>⚡ Distribution Manifold</h3><div class="spec"><div class="spec-label">Header Length</div><div class="spec-value">3.0<span class="spec-unit">m</span></div></div><div class="spec"><div class="spec-label">Diver Ports</div><div class="spec-value">6<span class="spec-unit">ports</span></div></div><div class="spec"><div class="spec-label">Port Spacing</div><div class="spec-value">500<span class="spec-unit">mm</span></div></div></div>
-      <div class="card"><h3>🔗 Umbilical Hoses</h3><div class="spec"><div class="spec-label">Quantity</div><div class="spec-value">6<span class="spec-unit">hoses</span></div></div><div class="spec"><div class="spec-label">Length</div><div class="spec-value">2,400<span class="spec-unit">mm each</span></div></div><div class="spec"><div class="spec-label">Pressure Rating</div><div class="spec-value">3.5<span class="spec-unit">atm</span></div></div></div>
-      <div class="card"><h3>🏗️ Structural Frame</h3><div class="spec"><div class="spec-label">Material</div><div class="spec-value">ASTM A36<span class="spec-unit">steel</span></div></div><div class="spec"><div class="spec-label">Yield Strength</div><div class="spec-value">250<span class="spec-unit">MPa</span></div></div><div class="spec"><div class="spec-label">Frame Mass</div><div class="spec-value">1,507<span class="spec-unit">kg</span></div></div></div>
-      <div class="card"><h3>🟠 Emergency O₂ Reserve</h3><div class="spec"><div class="spec-label">Cylinders</div><div class="spec-value">2<span class="spec-unit">units</span></div></div><div class="spec"><div class="spec-label">Volume Each</div><div class="spec-value">12<span class="spec-unit">litres</span></div></div><div class="spec"><div class="spec-label">Emergency Duration</div><div class="spec-value">34<span class="spec-unit">min (6 divers)</span></div></div></div>
-      <div class="card"><h3>🔵 Buoyancy Balloon</h3><div class="spec"><div class="spec-label">Material</div><div class="spec-value">TPU<span class="spec-unit">polyurethane</span></div></div><div class="spec"><div class="spec-label">Radius</div><div class="spec-value">850<span class="spec-unit">mm</span></div></div><div class="spec"><div class="spec-label">Displacement</div><div class="spec-value">2.57<span class="spec-unit">m³</span></div></div></div>
+
+      <div class="control-section">
+        <div class="control-label">🎬 View</div>
+        <div class="button-grid" style="grid-template-columns: 1fr;">
+          <button class="btn" id="rotateBtn">Auto Rotate: ON</button>
+          <button class="btn" id="resetBtn">Reset View</button>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-item">
+          <div class="info-label">Operating Depth</div>
+          <div class="info-value">20m</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Divers Supported</div>
+          <div class="info-value">6</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">O₂ Demand</div>
+          <div class="info-value">0.129 kg/hr</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Safety Factor</div>
+          <div class="info-value">3.32</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Turbine Flow</div>
+          <div class="info-value">109,800 L/min</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Membrane Area</div>
+          <div class="info-value">3.47 m²</div>
+        </div>
+      </div>
+
+      <p style="font-size: 12px; color: #6b7280; margin-top: 20px; line-height: 1.6;">
+        💡 Click & drag to rotate • Scroll to zoom • Click components to highlight
+      </p>
     </div>
   </div>
+
+  <script>
+    // Three.js Scene Setup
+    const canvas = document.getElementById('canvas');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setClearColor(0x0a0e27);
+
+    camera.position.set(8, 6, 8);
+    camera.lookAt(0, 0, 0);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x6b5aff, 0.6);
+    scene.add(ambientLight);
+    
+    const pointLight1 = new THREE.PointLight(0x9966ff, 1.2);
+    pointLight1.position.set(5, 5, 5);
+    scene.add(pointLight1);
+    
+    const pointLight2 = new THREE.PointLight(0x66ccff, 0.8);
+    pointLight2.position.set(-5, 3, -5);
+    scene.add(pointLight2);
+
+    // Components Group
+    const componentsGroup = new THREE.Group();
+    scene.add(componentsGroup);
+
+    const components = {};
+    let selectedComponent = null;
+    let autoRotate = true;
+
+    // Create Turbines
+    const turbinesGroup = new THREE.Group();
+    [[−1.5, 0.5, −1.8], [0, 0.5, −1.8], [1.5, 0.5, −1.8]].forEach((pos, i) => {
+      const turbineGroup = new THREE.Group();
+      turbineGroup.position.set(...pos);
+      
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.3, 16), 
+        new THREE.MeshStandardMaterial({ color: 0x00d4ff, emissive: 0x0099ff, emissiveIntensity: 0.4 }));
+      turbineGroup.add(cone);
+      
+      const bladesGroup = new THREE.Group();
+      [0, 120, 240].forEach(angle => {
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.02),
+          new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x0088ff, emissiveIntensity: 0.4 }));
+        blade.position.set(0.25, 0, 0);
+        blade.rotation.z = THREE.MathUtils.degToRad(angle);
+        bladesGroup.add(blade);
+      });
+      turbineGroup.add(bladesGroup);
+      turbinesGroup.add(turbineGroup);
+    });
+    components.turbines = turbinesGroup;
+    componentsGroup.add(turbinesGroup);
+
+    // Create Membrane (Yellow glowing cylinder)
+    const membraneGroup = new THREE.Group();
+    membraneGroup.position.y = 0.3;
+    const membrane = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 3, 16),
+      new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.4, metalness: 0.7, roughness: 0.3 }));
+    membrane.rotation.z = Math.PI / 2;
+    membraneGroup.add(membrane);
+    components.membrane = membraneGroup;
+    componentsGroup.add(membraneGroup);
+
+    // Create Scrubber (Green)
+    const scrubberGroup = new THREE.Group();
+    scrubberGroup.position.set(0, 1.5, 0);
+    const scrubber = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.6, 16),
+      new THREE.MeshStandardMaterial({ color: 0x22dd22, emissive: 0x22dd22, emissiveIntensity: 0.4 }));
+    scrubberGroup.add(scrubber);
+    const scrubberTop = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x11cc11 }));
+    scrubberTop.position.y = 0.3;
+    scrubberGroup.add(scrubberTop);
+    components.scrubber = scrubberGroup;
+    componentsGroup.add(scrubberGroup);
+
+    // Create Buffer Tank (Pink)
+    const bufferGroup = new THREE.Group();
+    bufferGroup.position.set(1.2, 0.3, 1.2);
+    const buffer = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2, 16),
+      new THREE.MeshStandardMaterial({ color: 0xff1493, emissive: 0xff1493, emissiveIntensity: 0.4 }));
+    bufferGroup.add(buffer);
+    components.buffer = bufferGroup;
+    componentsGroup.add(bufferGroup);
+
+    // Create Manifold (Purple)
+    const manifoldGroup = new THREE.Group();
+    const manifold = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3, 16),
+      new THREE.MeshStandardMaterial({ color: 0x9933ff, emissive: 0x9933ff, emissiveIntensity: 0.4 }));
+    manifold.rotation.z = Math.PI / 2;
+    manifoldGroup.add(manifold);
+    components.manifold = manifoldGroup;
+    componentsGroup.add(manifoldGroup);
+
+    // Create Frame (Gray)
+    const frameGroup = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 3),
+      new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 }));
+    frameGroup.add(frame);
+    components.frame = frameGroup;
+    componentsGroup.add(frameGroup);
+
+    // Create Hoses (Blue)
+    const hosesGroup = new THREE.Group();
+    for (let i = 0; i < 6; i++) {
+      const xPos = -1.25 + (i * 0.5);
+      const hose = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8),
+        new THREE.MeshStandardMaterial({ color: 0x0066ff }));
+      hose.position.set(xPos, -0.8, 0.2);
+      hosesGroup.add(hose);
+    }
+    components.hoses = hosesGroup;
+    componentsGroup.add(hosesGroup);
+
+    // Create Balloon (Light Blue)
+    const balloonGroup = new THREE.Group();
+    balloonGroup.position.y = 3.2;
+    const balloon = new THREE.Mesh(new THREE.SphereGeometry(0.85, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0x66ccff, emissive: 0x66ccff, emissiveIntensity: 0.4, transparent: true, opacity: 0.8 }));
+    balloonGroup.add(balloon);
+    components.balloon = balloonGroup;
+    componentsGroup.add(balloonGroup);
+
+    // Mouse Controls
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    document.addEventListener('mousedown', (e) => { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+        componentsGroup.rotation.y += deltaX * 0.005;
+        componentsGroup.rotation.x += deltaY * 0.005;
+      }
+      previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+    document.addEventListener('mouseup', () => { isDragging = false; });
+
+    // Component Selection
+    document.querySelectorAll('.component-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedComponent = btn.dataset.component;
+        
+        // Highlight effect
+        Object.values(components).forEach(comp => {
+          comp.children.forEach(child => {
+            if (child.material) child.material.emissiveIntensity = 0.1;
+          });
+        });
+        if (components[selectedComponent]) {
+          components[selectedComponent].children.forEach(child => {
+            if (child.material) child.material.emissiveIntensity = 0.8;
+          });
+        }
+      });
+    });
+
+    // Rotate Toggle
+    document.getElementById('rotateBtn').addEventListener('click', function() {
+      autoRotate = !autoRotate;
+      this.textContent = autoRotate ? 'Auto Rotate: ON' : 'Auto Rotate: OFF';
+    });
+
+    // Reset View
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      componentsGroup.rotation.set(0, 0, 0);
+      document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('active'));
+      Object.values(components).forEach(comp => {
+        comp.children.forEach(child => {
+          if (child.material) child.material.emissiveIntensity = 0.4;
+        });
+      });
+    });
+
+    // Zoom with scroll
+    document.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.position.z += e.deltaY * 0.005;
+    }, { passive: false });
+
+    // Animation Loop
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      if (autoRotate) {
+        componentsGroup.rotation.y += 0.001;
+      }
+
+      // Rotate turbines
+      turbinesGroup.children.forEach(turbine => {
+        const bladesGroup = turbine.children[1];
+        if (bladesGroup) bladesGroup.rotation.x += 0.02;
+      });
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+  </script>
 </body>
 </html>
