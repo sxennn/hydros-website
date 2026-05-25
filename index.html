@@ -3,27 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project HYDROS - Interactive 3D Station</title>
+  <title>Project HYDROS</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0a0e27;
-      color: #e0e7ff;
-      overflow: hidden;
-    }
-    #root {
-      width: 100vw;
-      height: 100vh;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Segoe UI, sans-serif; background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); color: #e0e7ff; min-height: 100vh; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 40px; background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(10px); padding: 30px; border-radius: 12px; border: 1px solid rgba(147, 112, 219, 0.3); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); }
+    .header h1 { font-size: 48px; color: #93a5ff; margin-bottom: 10px; letter-spacing: 2px; }
+    .header p { font-size: 16px; color: #9ca3af; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .card { background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(147, 112, 219, 0.3); border-radius: 12px; padding: 25px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); transition: all 0.3s ease; }
+    .card:hover { border-color: #93a5ff; box-shadow: 0 0 25px rgba(147, 112, 219, 0.5); transform: translateY(-5px); }
+    .card h3 { font-size: 20px; color: #93a5ff; margin-bottom: 15px; border-bottom: 1px solid rgba(147, 112, 219, 0.2); padding-bottom: 10px; }
+    .spec { margin-bottom: 12px; }
+    .spec-label { color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .spec-value { color: #60a5fa; font-size: 18px; font-weight: 700; font-family: Courier New, monospace; }
+    .spec-unit { color: #6b7280; font-size: 12px; margin-left: 5px; }
+    .overview { grid-column: 1 / -1; }
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+  <div class="container">
+    <div class="header">
+      <h1>🌊 Project HYDROS</h1>
+      <p>Hyperbaric Underwater Dissolved Oxygen Respirant Station</p>
+    </div>
+    <div class="grid">
+      <div class="card overview">
+        <h3>📊 System Overview</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+          <div class="spec"><div class="spec-label">Operating Depth</div><div class="spec-value">20<span class="spec-unit">m</span></div></div>
+          <div class="spec"><div class="spec-label">Divers Supported</div><div class="spec-value">6<span class="spec-unit">simultaneous</span></div></div>
+          <div class="spec"><div class="spec-label">Station Mass</div><div class="spec-value">2,346<span class="spec-unit">kg</span></div></div>
+          <div class="spec"><div class="spec-label">O₂ Demand</div><div class="spec-value">0.129<span class="spec-unit">kg/hr</span></div></div>
+          <div class="spec"><div class="spec-label">Safety Factor</div><div class="spec-value">3.32<span class="spec-unit">ASME</span></div></div>
+        </div>
+      </div>
+      <div class="card"><h3>🌪️ Turbine Array</h3><div class="spec"><div class="spec-label">Quantity</div><div class="spec-value">3<span class="spec-unit">turbines</span></div></div><div class="spec"><div class="spec-label">Flow Rate</div><div class="spec-value">109,800<span class="spec-unit">L/min</span></div></div><div class="spec"><div class="spec-label">Blade Diameter</div><div class="spec-value">760<span class="spec-unit">mm</span></div></div></div>
+      <div class="card"><h3>🫧 Membrane Chamber</h3><div class="spec"><div class="spec-label">Material</div><div class="spec-value">Ti-6Al-4V<span class="spec-unit">titanium</span></div></div><div class="spec"><div class="spec-label">Surface Area</div><div class="spec-value">3.47<span class="spec-unit">m²</span></div></div><div class="spec"><div class="spec-label">Extraction Rate</div><div class="spec-value">20%<span class="spec-unit">per pass</span></div></div></div>
+      <div class="card"><h3>🧹 CO₂ Scrubber</h3><div class="spec"><div class="spec-label">Soda Lime Charge</div><div class="spec-value">2.5<span class="spec-unit">kg</span></div></div><div class="spec"><div class="spec-label">Duration</div><div class="spec-value">48.5<span class="spec-unit">hours</span></div></div><div class="spec"><div class="spec-label">Target pCO₂</div><div class="spec-value">&lt;500<span class="spec-unit">Pa</span></div></div></div>
+      <div class="card"><h3>🔋 Buffer Tank</h3><div class="spec"><div class="spec-label">Volume</div><div class="spec-value">228<span class="spec-unit">litres</span></div></div><div class="spec"><div class="spec-label">Pressure</div><div class="spec-value">3.0<span class="spec-unit">atm</span></div></div><div class="spec"><div class="spec-label">Mass</div><div class="spec-value">68<span class="spec-unit">kg</span></div></div></div>
+      <div class="card"><h3>⚡ Distribution Manifold</h3><div class="spec"><div class="spec-label">Header Length</div><div class="spec-value">3.0<span class="spec-unit">m</span></div></div><div class="spec"><div class="spec-label">Diver Ports</div><div class="spec-value">6<span class="spec-unit">ports</span></div></div><div class="spec"><div class="spec-label">Port Spacing</div><div class="spec-value">500<span class="spec-unit">mm</span></div></div></div>
+      <div class="card"><h3>🔗 Umbilical Hoses</h3><div class="spec"><div class="spec-label">Quantity</div><div class="spec-value">6<span class="spec-unit">hoses</span></div></div><div class="spec"><div class="spec-label">Length</div><div class="spec-value">2,400<span class="spec-unit">mm each</span></div></div><div class="spec"><div class="spec-label">Pressure Rating</div><div class="spec-value">3.5<span class="spec-unit">atm</span></div></div></div>
+      <div class="card"><h3>🏗️ Structural Frame</h3><div class="spec"><div class="spec-label">Material</div><div class="spec-value">ASTM A36<span class="spec-unit">steel</span></div></div><div class="spec"><div class="spec-label">Yield Strength</div><div class="spec-value">250<span class="spec-unit">MPa</span></div></div><div class="spec"><div class="spec-label">Frame Mass</div><div class="spec-value">1,507<span class="spec-unit">kg</span></div></div></div>
+      <div class="card"><h3>🟠 Emergency O₂ Reserve</h3><div class="spec"><div class="spec-label">Cylinders</div><div class="spec-value">2<span class="spec-unit">units</span></div></div><div class="spec"><div class="spec-label">Volume Each</div><div class="spec-value">12<span class="spec-unit">litres</span></div></div><div class="spec"><div class="spec-label">Emergency Duration</div><div class="spec-value">34<span class="spec-unit">min (6 divers)</span></div></div></div>
+      <div class="card"><h3>🔵 Buoyancy Balloon</h3><div class="spec"><div class="spec-label">Material</div><div class="spec-value">TPU<span class="spec-unit">polyurethane</span></div></div><div class="spec"><div class="spec-label">Radius</div><div class="spec-value">850<span class="spec-unit">mm</span></div></div><div class="spec"><div class="spec-label">Displacement</div><div class="spec-value">2.57<span class="spec-unit">m³</span></div></div></div>
+    </div>
+  </div>
 </body>
 </html>
