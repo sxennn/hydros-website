@@ -1,0 +1,28 @@
+{
+  "name": "hydros-website",
+  "version": "1.0.0",
+  "description": "Interactive 3D visualization of Project HYDROS - Hyperbaric Underwater Dissolved Oxygen Respirant Station",
+  "homepage": "https://sxennn.github.io/hydros-website/",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^r156",
+    "react-three-fiber": "^8.14.0",
+    "@react-three/drei": "^9.88.0",
+    "zustand": "^4.4.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "gh-pages": "^6.1.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  }
+}
