@@ -9,8 +9,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Segoe UI, sans-serif; background: #0a0e27; color: #e0e7ff; overflow: hidden; }
     .main-container { display: flex; width: 100vw; height: 100vh; }
-    #canvas { flex: 1; width: 100%; }
-    .sidebar { width: 350px; background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(15px); border-left: 1px solid rgba(147, 112, 219, 0.3); padding: 20px; overflow-y: auto; }
+    #canvas { flex: 1; width: 100%; background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); }
+    .sidebar { width: 350px; background: rgba(10, 14, 39, 0.95); backdrop-filter: blur(15px); border-left: 1px solid rgba(147, 112, 219, 0.3); padding: 20px; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.5); }
     .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(147, 112, 219, 0.2); }
     .header h1 { font-size: 28px; color: #93a5ff; margin-bottom: 5px; letter-spacing: 1px; }
     .header p { font-size: 12px; color: #9ca3af; }
@@ -94,219 +94,257 @@
   </div>
 
   <script>
-    // Three.js Scene Setup
-    const canvas = document.getElementById('canvas');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    renderer.setClearColor(0x0a0e27);
-
-    camera.position.set(8, 6, 8);
-    camera.lookAt(0, 0, 0);
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x6b5aff, 0.6);
-    scene.add(ambientLight);
-    
-    const pointLight1 = new THREE.PointLight(0x9966ff, 1.2);
-    pointLight1.position.set(5, 5, 5);
-    scene.add(pointLight1);
-    
-    const pointLight2 = new THREE.PointLight(0x66ccff, 0.8);
-    pointLight2.position.set(-5, 3, -5);
-    scene.add(pointLight2);
-
-    // Components Group
-    const componentsGroup = new THREE.Group();
-    scene.add(componentsGroup);
-
-    const components = {};
-    let selectedComponent = null;
-    let autoRotate = true;
-
-    // Create Turbines
-    const turbinesGroup = new THREE.Group();
-    [[−1.5, 0.5, −1.8], [0, 0.5, −1.8], [1.5, 0.5, −1.8]].forEach((pos, i) => {
-      const turbineGroup = new THREE.Group();
-      turbineGroup.position.set(...pos);
+    try {
+      const canvas = document.getElementById('canvas');
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0e27);
       
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.3, 16), 
-        new THREE.MeshStandardMaterial({ color: 0x00d4ff, emissive: 0x0099ff, emissiveIntensity: 0.4 }));
-      turbineGroup.add(cone);
+      const camera = new THREE.PerspectiveCamera(75, (window.innerWidth - 350) / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth - 350, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      camera.position.set(8, 6, 8);
+      camera.lookAt(0, 0, 0);
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x6b5aff, 0.6);
+      scene.add(ambientLight);
       
-      const bladesGroup = new THREE.Group();
-      [0, 120, 240].forEach(angle => {
-        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.02),
-          new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x0088ff, emissiveIntensity: 0.4 }));
-        blade.position.set(0.25, 0, 0);
-        blade.rotation.z = THREE.MathUtils.degToRad(angle);
-        bladesGroup.add(blade);
-      });
-      turbineGroup.add(bladesGroup);
-      turbinesGroup.add(turbineGroup);
-    });
-    components.turbines = turbinesGroup;
-    componentsGroup.add(turbinesGroup);
+      const pointLight1 = new THREE.PointLight(0x9966ff, 1.2);
+      pointLight1.position.set(5, 5, 5);
+      scene.add(pointLight1);
+      
+      const pointLight2 = new THREE.PointLight(0x66ccff, 0.8);
+      pointLight2.position.set(-5, 3, -5);
+      scene.add(pointLight2);
 
-    // Create Membrane (Yellow glowing cylinder)
-    const membraneGroup = new THREE.Group();
-    membraneGroup.position.y = 0.3;
-    const membrane = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 3, 16),
-      new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.4, metalness: 0.7, roughness: 0.3 }));
-    membrane.rotation.z = Math.PI / 2;
-    membraneGroup.add(membrane);
-    components.membrane = membraneGroup;
-    componentsGroup.add(membraneGroup);
+      const componentsGroup = new THREE.Group();
+      scene.add(componentsGroup);
 
-    // Create Scrubber (Green)
-    const scrubberGroup = new THREE.Group();
-    scrubberGroup.position.set(0, 1.5, 0);
-    const scrubber = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.6, 16),
-      new THREE.MeshStandardMaterial({ color: 0x22dd22, emissive: 0x22dd22, emissiveIntensity: 0.4 }));
-    scrubberGroup.add(scrubber);
-    const scrubberTop = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0x11cc11 }));
-    scrubberTop.position.y = 0.3;
-    scrubberGroup.add(scrubberTop);
-    components.scrubber = scrubberGroup;
-    componentsGroup.add(scrubberGroup);
+      const components = {};
+      let selectedComponent = null;
+      let autoRotate = true;
 
-    // Create Buffer Tank (Pink)
-    const bufferGroup = new THREE.Group();
-    bufferGroup.position.set(1.2, 0.3, 1.2);
-    const buffer = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2, 16),
-      new THREE.MeshStandardMaterial({ color: 0xff1493, emissive: 0xff1493, emissiveIntensity: 0.4 }));
-    bufferGroup.add(buffer);
-    components.buffer = bufferGroup;
-    componentsGroup.add(bufferGroup);
-
-    // Create Manifold (Purple)
-    const manifoldGroup = new THREE.Group();
-    const manifold = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3, 16),
-      new THREE.MeshStandardMaterial({ color: 0x9933ff, emissive: 0x9933ff, emissiveIntensity: 0.4 }));
-    manifold.rotation.z = Math.PI / 2;
-    manifoldGroup.add(manifold);
-    components.manifold = manifoldGroup;
-    componentsGroup.add(manifoldGroup);
-
-    // Create Frame (Gray)
-    const frameGroup = new THREE.Group();
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 3),
-      new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 }));
-    frameGroup.add(frame);
-    components.frame = frameGroup;
-    componentsGroup.add(frameGroup);
-
-    // Create Hoses (Blue)
-    const hosesGroup = new THREE.Group();
-    for (let i = 0; i < 6; i++) {
-      const xPos = -1.25 + (i * 0.5);
-      const hose = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8),
-        new THREE.MeshStandardMaterial({ color: 0x0066ff }));
-      hose.position.set(xPos, -0.8, 0.2);
-      hosesGroup.add(hose);
-    }
-    components.hoses = hosesGroup;
-    componentsGroup.add(hosesGroup);
-
-    // Create Balloon (Light Blue)
-    const balloonGroup = new THREE.Group();
-    balloonGroup.position.y = 3.2;
-    const balloon = new THREE.Mesh(new THREE.SphereGeometry(0.85, 32, 32),
-      new THREE.MeshStandardMaterial({ color: 0x66ccff, emissive: 0x66ccff, emissiveIntensity: 0.4, transparent: true, opacity: 0.8 }));
-    balloonGroup.add(balloon);
-    components.balloon = balloonGroup;
-    componentsGroup.add(balloonGroup);
-
-    // Mouse Controls
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
-
-    document.addEventListener('mousedown', (e) => { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
-    document.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        const deltaX = e.clientX - previousMousePosition.x;
-        const deltaY = e.clientY - previousMousePosition.y;
-        componentsGroup.rotation.y += deltaX * 0.005;
-        componentsGroup.rotation.x += deltaY * 0.005;
-      }
-      previousMousePosition = { x: e.clientX, y: e.clientY };
-    });
-    document.addEventListener('mouseup', () => { isDragging = false; });
-
-    // Component Selection
-    document.querySelectorAll('.component-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedComponent = btn.dataset.component;
+      // TURBINES
+      const turbinesGroup = new THREE.Group();
+      const turbinePositions = [[-1.5, 0.5, -1.8], [0, 0.5, -1.8], [1.5, 0.5, -1.8]];
+      turbinePositions.forEach((pos) => {
+        const turbineGroup = new THREE.Group();
+        turbineGroup.position.set(pos[0], pos[1], pos[2]);
         
-        // Highlight effect
-        Object.values(components).forEach(comp => {
-          comp.children.forEach(child => {
-            if (child.material) child.material.emissiveIntensity = 0.1;
-          });
-        });
-        if (components[selectedComponent]) {
-          components[selectedComponent].children.forEach(child => {
-            if (child.material) child.material.emissiveIntensity = 0.8;
-          });
+        const cone = new THREE.Mesh(
+          new THREE.ConeGeometry(0.15, 0.3, 16),
+          new THREE.MeshStandardMaterial({ color: 0x00d4ff, emissive: 0x0099ff, emissiveIntensity: 0.4, metalness: 0.6, roughness: 0.4 })
+        );
+        turbineGroup.add(cone);
+        
+        const bladesGroup = new THREE.Group();
+        for (let i = 0; i < 3; i++) {
+          const blade = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.05, 0.02),
+            new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x0088ff, emissiveIntensity: 0.4 })
+          );
+          blade.position.set(0.25, 0, 0);
+          blade.rotation.z = (i * Math.PI * 2) / 3;
+          bladesGroup.add(blade);
         }
+        turbineGroup.userData.bladesGroup = bladesGroup;
+        turbineGroup.add(bladesGroup);
+        turbinesGroup.add(turbineGroup);
       });
-    });
+      components.turbines = turbinesGroup;
+      componentsGroup.add(turbinesGroup);
 
-    // Rotate Toggle
-    document.getElementById('rotateBtn').addEventListener('click', function() {
-      autoRotate = !autoRotate;
-      this.textContent = autoRotate ? 'Auto Rotate: ON' : 'Auto Rotate: OFF';
-    });
+      // MEMBRANE
+      const membraneGroup = new THREE.Group();
+      membraneGroup.position.y = 0.3;
+      const membrane = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.35, 0.35, 3, 16),
+        new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.4, metalness: 0.7, roughness: 0.3 })
+      );
+      membrane.rotation.z = Math.PI / 2;
+      membraneGroup.add(membrane);
+      components.membrane = membraneGroup;
+      componentsGroup.add(membraneGroup);
 
-    // Reset View
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      componentsGroup.rotation.set(0, 0, 0);
-      document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('active'));
-      Object.values(components).forEach(comp => {
-        comp.children.forEach(child => {
-          if (child.material) child.material.emissiveIntensity = 0.4;
+      // SCRUBBER
+      const scrubberGroup = new THREE.Group();
+      scrubberGroup.position.set(0, 1.5, 0);
+      const scrubber = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.18, 0.6, 16),
+        new THREE.MeshStandardMaterial({ color: 0x22dd22, emissive: 0x22dd22, emissiveIntensity: 0.4, metalness: 0.6, roughness: 0.4 })
+      );
+      scrubberGroup.add(scrubber);
+      const scrubberTop = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0x11cc11, metalness: 0.6, roughness: 0.4 })
+      );
+      scrubberTop.position.y = 0.3;
+      scrubberGroup.add(scrubberTop);
+      components.scrubber = scrubberGroup;
+      componentsGroup.add(scrubberGroup);
+
+      // BUFFER TANK
+      const bufferGroup = new THREE.Group();
+      bufferGroup.position.set(1.2, 0.3, 1.2);
+      const buffer = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.18, 2, 16),
+        new THREE.MeshStandardMaterial({ color: 0xff1493, emissive: 0xff1493, emissiveIntensity: 0.4, metalness: 0.7, roughness: 0.3 })
+      );
+      bufferGroup.add(buffer);
+      components.buffer = bufferGroup;
+      componentsGroup.add(bufferGroup);
+
+      // MANIFOLD
+      const manifoldGroup = new THREE.Group();
+      const manifold = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 3, 16),
+        new THREE.MeshStandardMaterial({ color: 0x9933ff, emissive: 0x9933ff, emissiveIntensity: 0.4, metalness: 0.8, roughness: 0.2 })
+      );
+      manifold.rotation.z = Math.PI / 2;
+      manifoldGroup.add(manifold);
+      components.manifold = manifoldGroup;
+      componentsGroup.add(manifoldGroup);
+
+      // FRAME
+      const frameGroup = new THREE.Group();
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(4, 2, 3),
+        new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.6 })
+      );
+      frameGroup.add(frame);
+      components.frame = frameGroup;
+      componentsGroup.add(frameGroup);
+
+      // HOSES
+      const hosesGroup = new THREE.Group();
+      for (let i = 0; i < 6; i++) {
+        const xPos = -1.25 + (i * 0.5);
+        const hose = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8),
+          new THREE.MeshStandardMaterial({ color: 0x0066ff, metalness: 0.5, roughness: 0.5 })
+        );
+        hose.position.set(xPos, -0.8, 0.2);
+        hosesGroup.add(hose);
+      }
+      components.hoses = hosesGroup;
+      componentsGroup.add(hosesGroup);
+
+      // BALLOON
+      const balloonGroup = new THREE.Group();
+      balloonGroup.position.y = 3.2;
+      const balloon = new THREE.Mesh(
+        new THREE.SphereGeometry(0.85, 32, 32),
+        new THREE.MeshStandardMaterial({ color: 0x66ccff, emissive: 0x66ccff, emissiveIntensity: 0.4, transparent: true, opacity: 0.8, metalness: 0.5, roughness: 0.4 })
+      );
+      balloonGroup.add(balloon);
+      components.balloon = balloonGroup;
+      componentsGroup.add(balloonGroup);
+
+      // Mouse Controls
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+
+      document.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (isDragging && e.clientX < window.innerWidth - 350) {
+          const deltaX = e.clientX - previousMousePosition.x;
+          const deltaY = e.clientY - previousMousePosition.y;
+          componentsGroup.rotation.y += deltaX * 0.005;
+          componentsGroup.rotation.x += deltaY * 0.005;
+        }
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      // Component Selection
+      document.querySelectorAll('.component-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedComponent = btn.dataset.component;
+          
+          Object.values(components).forEach(comp => {
+            comp.traverse(child => {
+              if (child.material && child.material.emissive) {
+                child.material.emissiveIntensity = 0.1;
+              }
+            });
+          });
+          
+          if (components[selectedComponent]) {
+            components[selectedComponent].traverse(child => {
+              if (child.material && child.material.emissive) {
+                child.material.emissiveIntensity = 0.8;
+              }
+            });
+          }
         });
       });
-    });
 
-    // Zoom with scroll
-    document.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      camera.position.z += e.deltaY * 0.005;
-    }, { passive: false });
-
-    // Animation Loop
-    function animate() {
-      requestAnimationFrame(animate);
-      
-      if (autoRotate) {
-        componentsGroup.rotation.y += 0.001;
-      }
-
-      // Rotate turbines
-      turbinesGroup.children.forEach(turbine => {
-        const bladesGroup = turbine.children[1];
-        if (bladesGroup) bladesGroup.rotation.x += 0.02;
+      // Rotate Toggle
+      document.getElementById('rotateBtn').addEventListener('click', function() {
+        autoRotate = !autoRotate;
+        this.textContent = autoRotate ? 'Auto Rotate: ON' : 'Auto Rotate: OFF';
       });
 
-      renderer.render(scene, camera);
-    }
-    animate();
+      // Reset View
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        componentsGroup.rotation.set(0, 0, 0);
+        document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('active'));
+        Object.values(components).forEach(comp => {
+          comp.traverse(child => {
+            if (child.material && child.material.emissive) {
+              child.material.emissiveIntensity = 0.4;
+            }
+          });
+        });
+      });
 
-    // Handle window resize
-    window.addEventListener('resize', () => {
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    });
+      // Zoom
+      document.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        camera.position.z += e.deltaY * 0.005;
+      }, { passive: false });
+
+      // Animation Loop
+      function animate() {
+        requestAnimationFrame(animate);
+        
+        if (autoRotate) {
+          componentsGroup.rotation.y += 0.001;
+        }
+
+        turbinesGroup.children.forEach(turbine => {
+          const bladesGroup = turbine.userData.bladesGroup;
+          if (bladesGroup) bladesGroup.rotation.x += 0.02;
+        });
+
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // Handle Resize
+      window.addEventListener('resize', () => {
+        const width = window.innerWidth - 350;
+        const height = window.innerHeight;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      });
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert('WebGL Error: ' + error.message);
+    }
   </script>
 </body>
 </html>
